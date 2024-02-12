@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 
+
 # Initialisierung von Pygame
 pygame.init()
 
@@ -112,14 +113,18 @@ def spiel_leicht():
     
     pygame.display.set_caption("Hangman Spiel")
 
-    wortliste = ["PYTHON", "JAVA", "HTML", "CSS", "JAVASCRIPT", "GITHUB", "PYGAME"]
+    wortliste = ["PYTHON", "JAVASCRIPT", "GITHUB", "PYGAME"]
     zufallswort = list(random.choice(wortliste).upper())
     geratenes_wort = ['_' for _ in zufallswort]
 
     versuche = 6  # Anzahl der erlaubten Versuche
     korrekte_guesses = 0
 
-    schriftart = pygame.font.Font(None, 36)
+    schriftartBuchstaben = pygame.font.Font(None, 36)
+    schriftartVersuche = pygame.font.Font(None, 30)
+    schriftartWort = pygame.font.Font(None, 70)
+
+
 
     
     while True:
@@ -127,27 +132,29 @@ def spiel_leicht():
 
         button_width, button_height = 30, 30
         abstand = 5
-        x, y = 50, 50
+        x, y = 170, 400
 
         button_list = []  
+
 
         for i in range(26):
             buchstabe = chr(i + 65)
             button_rect = pygame.Rect(x, y, button_width, button_height)
             pygame.draw.rect(screen, (255, 255, 255), button_rect)
-            buchstabe_text = schriftart.render(buchstabe, True, (0, 0, 0))
+            buchstabe_text = schriftartBuchstaben.render(buchstabe, True, (0, 0, 0))
             screen.blit(buchstabe_text, (x + 5, y + 5))
 
             button_speichern = {'rect': button_rect, 'letter': buchstabe}
             button_list.append(button_speichern)
             x += button_width + abstand
             if (i + 1) % 13 == 0:
-                x = 50
-                y += button_height + abstand
+                x = 170
+                y += 35
 
 
-        anzeige_wort = schriftart.render(" ".join(geratenes_wort), True, (0, 0, 0))
-        screen.blit(anzeige_wort, (200, 400))
+        anzeige_wort = schriftartWort.render(" ".join(geratenes_wort), True, (0, 0, 0))
+        wort_rechteck = anzeige_wort.get_rect(center=(breite // 2, höhe // 2))
+        screen.blit(anzeige_wort, wort_rechteck)
 
         for event in pygame.event.get():  # Ereignisse abrufen (z. B. Tastatureingaben oder Mausklicks)
             if event.type == pygame.QUIT:  # Überprüfen, ob das Fenster geschlossen wurde
@@ -157,61 +164,450 @@ def spiel_leicht():
                 geratener_buchstabe = gedrueckter_button['letter']  # Den Buchstaben des gedrückten Buttons erhalten
                 
                 if geratener_buchstabe in zufallswort:  # Überprüfen, ob der geratene Buchstabe im Zufallswort enthalten ist
-                    for i in range(len(zufallswort)):  # Für jeden Index im Zufallswort überprüfen
-                        if zufallswort[i] == geratener_buchstabe:  # Überprüfen, ob der geratene Buchstabe an dieser Position steht
-                            geratenes_wort[i] = geratener_buchstabe  # Den geratenen Buchstaben in das geratene Wort einfügen
-                            korrekte_guesses += 1  # Die Anzahl der korrekten Vermutungen erhöhen
+                    if geratener_buchstabe not in geratenes_wort:   #Überprüfen, ob Buchstabe schon erraten wurde
+                        for i in range(len(zufallswort)):  # Für jeden Index im Zufallswort überprüfen
+                            if zufallswort[i] == geratener_buchstabe:  # Überprüfen, ob der geratene Buchstabe an dieser Position steht
+                                geratenes_wort[i] = geratener_buchstabe  # Den geratenen Buchstaben in das geratene Wort einfügen
+                                korrekte_guesses += 1  # Die Anzahl der korrekten Vermutungen erhöhen
                 else:
                     versuche -= 1  # Wenn der geratene Buchstabe nicht im Zufallswort ist, die Anzahl der Versuche reduzieren
 
-        anzeige_versuche = schriftart.render(f"Versuche übrig: {versuche}", True, (0, 0, 0))
-        screen.blit(anzeige_versuche, (200, 500))
+            
 
+        
+        
+        if korrekte_guesses == len(zufallswort) or versuche == 0:
+
+            button_list.clear # button liste wird geleert, damit kein buchstabe betätigt werden kann
+        
+        anzeige_versuche = schriftartVersuche.render(f"Versuche übrig: {versuche}", True, (0, 0, 0))
+        screen.blit(anzeige_versuche, (50, 550))
+
+        
+        # Button für Hauptmenü
+        
+        schriftart_hauptmenü = pygame.font.Font(None, 20)
+        hauptmenü_button = pygame.Rect(breite // 2 - 350, höhe // 2 - 250, 150, 50)
+        pygame.draw.rect(screen, (220, 220, 220), hauptmenü_button)
+        hauptmenü_text = schriftart_hauptmenü.render("Hauptmenü", True, (0, 0, 0))
+        hauptmenü_rechteck = hauptmenü_text.get_rect(center=hauptmenü_button.center)
+        screen.blit(hauptmenü_text, hauptmenü_rechteck)
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                maus_position = pygame.mouse.get_pos()
+                if hauptmenü_rechteck.collidepoint(maus_position):
+                    hauptmenü()
+
+
+        bild = ["hangman0.png",
+                "hangman1.png",
+                "hangman2.png",
+                "hangman3.png",
+                "hangman4.png",
+                "hangman5.png",
+                "hangman6.png"]
+        
+        if versuche == 6:
+            hangman_bild = pygame.image.load(bild[0])
+        elif versuche == 5:
+            hangman_bild = pygame.image.load(bild[1])
+        elif versuche == 4:
+            hangman_bild = pygame.image.load(bild[2])
+        elif versuche == 3:
+            hangman_bild = pygame.image.load(bild[3])
+        elif versuche == 2:
+            hangman_bild = pygame.image.load(bild[4])
+        elif versuche == 1:
+            hangman_bild = pygame.image.load(bild[5])
+        elif versuche <= 0:
+            hangman_bild = pygame.image.load(bild[6])
+
+        
+        screen.blit(hangman_bild, (550, 70))
+
+
+        
+        
+        # Code für Wort erraten oder nicht erraten
         if korrekte_guesses == len(zufallswort):
-            print("Herzlichen Glückwunsch! Du hast das Wort erraten.")
-            beende_spiel()
+
+            schriftart = pygame.font.Font(None, 50)
+            erraten_text = schriftart.render("Du hast das Wort erraten!!!", True, (0, 0, 0))
+            screen.blit(erraten_text, (50, 120))
+
+
+            # Button für Neustarten
+            Neustart_button = pygame.Rect(breite // 2 - 100, höhe // 2 + 200, 200, 50)
+            pygame.draw.rect(screen, (255, 255, 255), Neustart_button)
+            Neustart_text = schriftart.render("Neu Starten", True, (0, 0, 0))
+            Neustart_rechteck = Neustart_text.get_rect(center=Neustart_button.center)
+            screen.blit(Neustart_text, Neustart_rechteck)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    maus_position = pygame.mouse.get_pos()
+                    if Neustart_rechteck.collidepoint(maus_position):
+                        spiel_leicht()
+
+            
+
+    
         elif versuche == 0:
-            print(f"Leider verloren! Das richtige Wort war: {''.join(zufallswort)}")
-            beende_spiel()
+
+            schriftart = pygame.font.Font(None, 50)
+            erraten_text = schriftart.render("Du hast das Wort NICHT erraten", True, (0, 0, 0))
+            screen.blit(erraten_text, (50, 120))
+
+
+            # Button für Neustarten
+            Neustart_button = pygame.Rect(breite // 2 - 100, höhe // 2 + 200, 200, 50)
+            pygame.draw.rect(screen, (255, 255, 255), Neustart_button)
+            Neustart_text = schriftart.render("Neu Starten", True, (0, 0, 0))
+            Neustart_rechteck = Neustart_text.get_rect(center=Neustart_button.center)
+            screen.blit(Neustart_text, Neustart_rechteck)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    maus_position = pygame.mouse.get_pos()
+                    if Neustart_rechteck.collidepoint(maus_position):
+                        spiel_leicht()
+            
+            
 
         pygame.display.flip()
 
 
 
 def spiel_mittel():
+    
+    pygame.init()
     screen = pygame.display.set_mode((800, 600))
+    
+    pygame.display.set_caption("Hangman Spiel")
 
+    wortliste = ["Java", "HTML", "CSS"]
+    zufallswort = list(random.choice(wortliste).upper())
+    geratenes_wort = ['_' for _ in zufallswort]
+
+    versuche = 6  # Anzahl der erlaubten Versuche
+    korrekte_guesses = 0
+
+    schriftartBuchstaben = pygame.font.Font(None, 36)
+    schriftartVersuche = pygame.font.Font(None, 30)
+    schriftartWort = pygame.font.Font(None, 70)
+
+
+
+    
     while True:
-        screen.fill((255, 200, 70))
+        screen.fill((255, 180, 55))
 
-        schriftart = pygame.font.Font(None, 80)
-        logo_text = schriftart.render("Mittel", True, (0, 0, 0))
-        logo_rechteck = logo_text.get_rect(center=(breite // 2, höhe // 4))
-        screen.blit(logo_text, logo_rechteck)
+        button_width, button_height = 30, 30
+        abstand = 5
+        x, y = 170, 400
+
+        button_list = []  
+
+
+        for i in range(26):
+            buchstabe = chr(i + 65)
+            button_rect = pygame.Rect(x, y, button_width, button_height)
+            pygame.draw.rect(screen, (255, 255, 255), button_rect)
+            buchstabe_text = schriftartBuchstaben.render(buchstabe, True, (0, 0, 0))
+            screen.blit(buchstabe_text, (x + 5, y + 5))
+
+            button_speichern = {'rect': button_rect, 'letter': buchstabe}
+            button_list.append(button_speichern)
+            x += button_width + abstand
+            if (i + 1) % 13 == 0:
+                x = 170
+                y += 35
+
+
+        anzeige_wort = schriftartWort.render(" ".join(geratenes_wort), True, (0, 0, 0))
+        wort_rechteck = anzeige_wort.get_rect(center=(breite // 2, höhe // 2))
+        screen.blit(anzeige_wort, wort_rechteck)
+
+        for event in pygame.event.get():  # Ereignisse abrufen (z. B. Tastatureingaben oder Mausklicks)
+            if event.type == pygame.QUIT:  # Überprüfen, ob das Fenster geschlossen wurde
+                beende_spiel()  # Beende das Spiel, wenn das Fenster geschlossen wird
+            elif ist_button_gedrueckt(event, button_list):  # Überprüfen, ob ein Button (Buchstabe) gedrückt wurde
+                gedrueckter_button = next(button for button in button_list if button['rect'].collidepoint(pygame.mouse.get_pos()))  # Den gedrückten Button finden
+                geratener_buchstabe = gedrueckter_button['letter']  # Den Buchstaben des gedrückten Buttons erhalten
+                
+                if geratener_buchstabe in zufallswort:  # Überprüfen, ob der geratene Buchstabe im Zufallswort enthalten ist
+                    if geratener_buchstabe not in geratenes_wort:   #Überprüfen, ob Buchstabe schon erraten wurde
+                        for i in range(len(zufallswort)):  # Für jeden Index im Zufallswort überprüfen
+                            if zufallswort[i] == geratener_buchstabe:  # Überprüfen, ob der geratene Buchstabe an dieser Position steht
+                                geratenes_wort[i] = geratener_buchstabe  # Den geratenen Buchstaben in das geratene Wort einfügen
+                                korrekte_guesses += 1  # Die Anzahl der korrekten Vermutungen erhöhen
+                else:
+                    versuche -= 1  # Wenn der geratene Buchstabe nicht im Zufallswort ist, die Anzahl der Versuche reduzieren
+
+            
+
+        
+        
+        if korrekte_guesses == len(zufallswort) or versuche == 0:
+
+            button_list.clear # button liste wird geleert, damit kein buchstabe betätigt werden kann
+        
+        anzeige_versuche = schriftartVersuche.render(f"Versuche übrig: {versuche}", True, (0, 0, 0))
+        screen.blit(anzeige_versuche, (50, 550))
+
+        
+        # Button für Hauptmenü
+        
+        schriftart_hauptmenü = pygame.font.Font(None, 20)
+        hauptmenü_button = pygame.Rect(breite // 2 - 350, höhe // 2 - 250, 150, 50)
+        pygame.draw.rect(screen, (220, 220, 220), hauptmenü_button)
+        hauptmenü_text = schriftart_hauptmenü.render("Hauptmenü", True, (0, 0, 0))
+        hauptmenü_rechteck = hauptmenü_text.get_rect(center=hauptmenü_button.center)
+        screen.blit(hauptmenü_text, hauptmenü_rechteck)
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                maus_position = pygame.mouse.get_pos()
+                if hauptmenü_rechteck.collidepoint(maus_position):
+                    hauptmenü()
+
+
+        bild = ["hangman0.png",
+                "hangman1.png",
+                "hangman2.png",
+                "hangman3.png",
+                "hangman4.png",
+                "hangman5.png",
+                "hangman6.png"]
+        
+        if versuche == 6:
+            hangman_bild = pygame.image.load(bild[0])
+        elif versuche == 5:
+            hangman_bild = pygame.image.load(bild[1])
+        elif versuche == 4:
+            hangman_bild = pygame.image.load(bild[2])
+        elif versuche == 3:
+            hangman_bild = pygame.image.load(bild[3])
+        elif versuche == 2:
+            hangman_bild = pygame.image.load(bild[4])
+        elif versuche == 1:
+            hangman_bild = pygame.image.load(bild[5])
+        elif versuche <= 0:
+            hangman_bild = pygame.image.load(bild[6])
+
+        
+        screen.blit(hangman_bild, (550, 70))
+
+
+        
+        
+        # Code für Wort erraten oder nicht erraten
+        if korrekte_guesses == len(zufallswort):
+
+            schriftart = pygame.font.Font(None, 50)
+            erraten_text = schriftart.render("Du hast das Wort erraten!!!", True, (0, 0, 0))
+            screen.blit(erraten_text, (50, 120))
+
+
+            # Button für Neustarten
+            Neustart_button = pygame.Rect(breite // 2 - 100, höhe // 2 + 200, 200, 50)
+            pygame.draw.rect(screen, (255, 255, 255), Neustart_button)
+            Neustart_text = schriftart.render("Neu Starten", True, (0, 0, 0))
+            Neustart_rechteck = Neustart_text.get_rect(center=Neustart_button.center)
+            screen.blit(Neustart_text, Neustart_rechteck)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    maus_position = pygame.mouse.get_pos()
+                    if Neustart_rechteck.collidepoint(maus_position):
+                        spiel_mittel()
+
+            
+
+    
+        elif versuche == 0:
+
+            schriftart = pygame.font.Font(None, 50)
+            erraten_text = schriftart.render("Du hast das Wort NICHT erraten", True, (0, 0, 0))
+            screen.blit(erraten_text, (50, 120))
+
+
+            # Button für Neustarten
+            Neustart_button = pygame.Rect(breite // 2 - 100, höhe // 2 + 200, 200, 50)
+            pygame.draw.rect(screen, (255, 255, 255), Neustart_button)
+            Neustart_text = schriftart.render("Neu Starten", True, (0, 0, 0))
+            Neustart_rechteck = Neustart_text.get_rect(center=Neustart_button.center)
+            screen.blit(Neustart_text, Neustart_rechteck)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    maus_position = pygame.mouse.get_pos()
+                    if Neustart_rechteck.collidepoint(maus_position):
+                        spiel_mittel()
+            
+            
 
         pygame.display.flip()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                beende_spiel()
-
 
 def spiel_schwer():
+    
     screen = pygame.display.set_mode((800, 600))
+
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    
+    pygame.display.set_caption("Hangman Spiel")
+
+    wortliste = ["C","SQL"]
+    zufallswort = list(random.choice(wortliste).upper())
+    geratenes_wort = ['_' for _ in zufallswort]
+
+    versuche = 6  # Anzahl der erlaubten Versuche
+    korrekte_guesses = 0
+
+    schriftartBuchstaben = pygame.font.Font(None, 36)
+    schriftartVersuche = pygame.font.Font(None, 30)
+    schriftartWort = pygame.font.Font(None, 70)
+
+
 
     while True:
         screen.fill((255, 70, 110))
 
-        schriftart = pygame.font.Font(None, 80)
-        logo_text = schriftart.render("Schwer", True, (0, 0, 0))
-        logo_rechteck = logo_text.get_rect(center=(breite // 2, höhe // 4))
-        screen.blit(logo_text, logo_rechteck)
+        button_width, button_height = 30, 30
+        abstand = 5
+        x, y = 170, 400
 
-        pygame.display.flip()
+        button_list = []  
+
+
+        for i in range(26):
+            buchstabe = chr(i + 65)
+            button_rect = pygame.Rect(x, y, button_width, button_height)
+            pygame.draw.rect(screen, (255, 255, 255), button_rect)
+            buchstabe_text = schriftartBuchstaben.render(buchstabe, True, (0, 0, 0))
+            screen.blit(buchstabe_text, (x + 5, y + 5))
+
+            button_speichern = {'rect': button_rect, 'letter': buchstabe}
+            button_list.append(button_speichern)
+            x += button_width + abstand
+            if (i + 1) % 13 == 0:
+                x = 170
+                y += 35
+
+
+        anzeige_wort = schriftartWort.render(" ".join(geratenes_wort), True, (0, 0, 0))
+        wort_rechteck = anzeige_wort.get_rect(center=(breite // 2, höhe // 2))
+        screen.blit(anzeige_wort, wort_rechteck)
+
+        if versuche == 6:
+            hangman_bild = pygame.image.load("hangman0.png")
+        elif versuche == 5:
+            hangman_bild = pygame.image.load("hangman1.png")
+        elif versuche == 4:
+            hangman_bild = pygame.image.load("hangman2.png")
+        elif versuche == 3:
+            hangman_bild = pygame.image.load("hangman3.png")
+        elif versuche == 2:
+            hangman_bild = pygame.image.load("hangman4.png")
+        elif versuche == 1:
+            hangman_bild = pygame.image.load("hangman5.png")
+        elif versuche <= 0:
+            hangman_bild = pygame.image.load("hangman6.png")
+        
+        screen.blit(hangman_bild, (550, 70))
+
+
+
+        for event in pygame.event.get():  # Ereignisse abrufen (z. B. Tastatureingaben oder Mausklicks)
+            if event.type == pygame.QUIT:  # Überprüfen, ob das Fenster geschlossen wurde
+                beende_spiel()  # Beende das Spiel, wenn das Fenster geschlossen wird
+            elif ist_button_gedrueckt(event, button_list):  # Überprüfen, ob ein Button (Buchstabe) gedrückt wurde
+                gedrueckter_button = next(button for button in button_list if button['rect'].collidepoint(pygame.mouse.get_pos()))  # Den gedrückten Button finden
+                geratener_buchstabe = gedrueckter_button['letter']  # Den Buchstaben des gedrückten Buttons erhalten
+                
+                if geratener_buchstabe in zufallswort:  # Überprüfen, ob der geratene Buchstabe im Zufallswort enthalten ist
+                    if geratener_buchstabe not in geratenes_wort:   #Überprüfen, ob Buchstabe schon erraten wurde
+                        for i in range(len(zufallswort)):  # Für jeden Index im Zufallswort überprüfen
+                            if zufallswort[i] == geratener_buchstabe:  # Überprüfen, ob der geratene Buchstabe an dieser Position steht
+                                geratenes_wort[i] = geratener_buchstabe  # Den geratenen Buchstaben in das geratene Wort einfügen
+                                korrekte_guesses += 1  # Die Anzahl der korrekten Vermutungen erhöhen
+                else:
+                    versuche -= 1  # Wenn der geratene Buchstabe nicht im Zufallswort ist, die Anzahl der Versuche reduzieren
+
+        if korrekte_guesses == len(zufallswort) or versuche == 0:
+
+            button_list.clear # button liste wird geleert, damit kein buchstabe betätigt werden kann
+        
+        anzeige_versuche = schriftartVersuche.render(f"Versuche übrig: {versuche}", True, (0, 0, 0))
+        screen.blit(anzeige_versuche, (50, 550))
+
+
+        # Button für Hauptmenü
+        
+        schriftart_hauptmenü = pygame.font.Font(None, 20)
+        hauptmenü_button = pygame.Rect(breite // 2 - 350, höhe // 2 - 250, 150, 50)
+        pygame.draw.rect(screen, (220, 220, 220), hauptmenü_button)
+        hauptmenü_text = schriftart_hauptmenü.render("Hauptmenü", True, (0, 0, 0))
+        hauptmenü_rechteck = hauptmenü_text.get_rect(center=hauptmenü_button.center)
+        screen.blit(hauptmenü_text, hauptmenü_rechteck)
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                beende_spiel()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                maus_position = pygame.mouse.get_pos()
+                if hauptmenü_rechteck.collidepoint(maus_position):
+                    hauptmenü()
+
+
+        # Code für Wort erraten oder nicht erraten
+        if korrekte_guesses == len(zufallswort):
+
+            schriftart = pygame.font.Font(None, 50)
+            erraten_text = schriftart.render("Du hast das Wort erraten!!!", True, (0, 0, 0))
+            screen.blit(erraten_text, (50, 120))
+
+            # Button für Starten
+            Neustart_button = pygame.Rect(breite // 2 - 100, höhe // 2 + 200, 200, 50)
+            pygame.draw.rect(screen, (255, 255, 255), Neustart_button)
+            Neustart_text = schriftart.render("Neu Starten", True, (0, 0, 0))
+            Neustart_rechteck = Neustart_text.get_rect(center=Neustart_button.center)
+            screen.blit(Neustart_text, Neustart_rechteck)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    maus_position = pygame.mouse.get_pos()
+                    if Neustart_rechteck.collidepoint(maus_position):
+                        spiel_schwer()
+
+            
+
+    
+        elif versuche == 0:
+
+            schriftart = pygame.font.Font(None, 50)
+            erraten_text = schriftart.render("Du hast das Wort NICHT erraten", True, (0, 0, 0))
+            screen.blit(erraten_text, (50, 120))
+
+            
+
+            # Button für Neustarten
+            Neustart_button = pygame.Rect(breite // 2 - 100, höhe // 2 + 200, 200, 50)
+            pygame.draw.rect(screen, (255, 255, 255), Neustart_button)
+            Neustart_text = schriftart.render("Neu Starten", True, (0, 0, 0))
+            Neustart_rechteck = Neustart_text.get_rect(center=Neustart_button.center)
+            screen.blit(Neustart_text, Neustart_rechteck)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    maus_position = pygame.mouse.get_pos()
+                    if Neustart_rechteck.collidepoint(maus_position):
+                        spiel_leicht()
+            
+            
+
+        pygame.display.flip()
 
 
 # Starte die GUI
